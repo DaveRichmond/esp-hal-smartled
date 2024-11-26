@@ -1,0 +1,23 @@
+[package]
+name = "esp-hal-smartled"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+esp-hal = { version = "0.22", optional=true }
+esp-hal-embassy = { version = "0.5", optional=true }
+smart-leds-trait  = "0.3"
+fugit             = "0.3"
+document-features = "0.2.10"
+defmt = { version = "0.3.8", optional=true }
+
+[features]
+defmt   = ["dep:defmt", "esp-hal/defmt"]
+esp32   = ["esp-hal/esp32",   "esp-hal-embassy?/esp32"]
+esp32c2 = ["esp-hal/esp32c2", "esp-hal-embassy?/esp32c2"]
+esp32c3 = ["esp-hal/esp32c3", "esp-hal-embassy?/esp32c3"]
+esp32c6 = ["esp-hal/esp32c6", "esp-hal-embassy?/esp32c6"]
+esp32h2 = ["esp-hal/esp32h2", "esp-hal-embassy?/esp32h2"]
+esp32s2 = ["esp-hal/esp32s2", "esp-hal-embassy?/esp32s2"]
+esp32s3 = ["esp-hal/esp32s3", "esp-hal-embassy?/esp32s3"]
+
