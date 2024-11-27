@@ -28,7 +28,7 @@ use core::{fmt::Debug, slice::IterMut};
 
 use esp_hal::{
     clock::Clocks,
-    gpio::OutputPin,
+    gpio::interconnect::PeripheralOutput,
     peripheral::Peripheral,
     rmt::{Error as RmtError, PulseCode, TxChannel, TxChannelConfig, TxChannelCreator},
 };
@@ -85,14 +85,14 @@ where
     TX: TxChannel,
 {
     /// Create a new adapter object that drives the pin using the RMT channel.
-    pub fn new<C, O>(
+    pub fn new<C, P>(
         channel: C,
-        pin: impl Peripheral<P = O> + 'd,
+        pin: impl Peripheral<P = P> + 'd,
         rmt_buffer: [u32; BUFFER_SIZE],
     ) -> SmartLedsAdapter<TX, BUFFER_SIZE>
     where
-        O: OutputPin + 'd,
-        C: TxChannelCreator<'d, TX, O>,
+        C: TxChannelCreator<'d, TX, P>,
+        P: PeripheralOutput + Peripheral<P = P>,
     {
         let config = TxChannelConfig {
             clk_divider: 1,
@@ -113,18 +113,18 @@ where
             channel: Some(channel),
             rmt_buffer,
             pulses: (
-                u32::from(PulseCode {
-                    level1: true,
-                    length1: ((SK68XX_T0H_NS * src_clock) / 1000) as u16,
-                    level2: false,
-                    length2: ((SK68XX_T0L_NS * src_clock) / 1000) as u16,
-                }),
-                u32::from(PulseCode {
-                    level1: true,
-                    length1: ((SK68XX_T1H_NS * src_clock) / 1000) as u16,
-                    level2: false,
-                    length2: ((SK68XX_T1L_NS * src_clock) / 1000) as u16,
-                }),
+                PulseCode::new(
+                    true,
+                    ((SK68XX_T0H_NS * src_clock) / 1000) as u16,
+                    false,
+                    ((SK68XX_T0L_NS * src_clock) / 1000) as u16,
+                ),
+                PulseCode::new(
+                    true,
+                    ((SK68XX_T1H_NS * src_clock) / 1000) as u16,
+                    false,
+                    ((SK68XX_T1L_NS * src_clock) / 1000) as u16,
+                ),
             ),
         }
     }
@@ -184,11 +184,11 @@ where
         }
 
         // Finally, add an end element.
-        *seq_iter.next().ok_or(LedAdapterError::BufferSizeExceeded)? = 0;
+        *seq_iter.next().ok_or(LedAdapterError::BufferSizeExceeded)? = PulseCode::empty();
 
         // Perform the actual RMT operation. We use the u32 values here right away.
         let channel = self.channel.take().unwrap();
-        match channel.transmit(&self.rmt_buffer).wait() {
+        match channel.transmit(&self.rmt_buffer).unwrap().wait() {
             Ok(chan) => {
                 self.channel = Some(chan);
                 Ok(())
