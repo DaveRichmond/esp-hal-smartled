@@ -1,3 +1,5 @@
+Note: This repo was created in the time between esp-hal-smartled being removed from the bases esp-hal and moving to [https://github.com/esp-rs/esp-hal-community](https://github.com/esp-rs/esp-hal-community)
+
 # esp-hal-smartled
 
 [![Crates.io](https://img.shields.io/crates/v/esp-hal-smartled?labelColor=1C2C2E&color=C96329&logo=Rust&style=flat-square)](https://crates.io/crates/esp-hal-smartled)
